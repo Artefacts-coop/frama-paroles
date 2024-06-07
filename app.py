@@ -55,12 +55,19 @@ def main():
     c = st.container()
     c.write("Nombre de posts : " + str(len(posts)))
 
-    df_posts = pd.DataFrame(posts)
-    # c.dataframe(df_posts)
-    df_genre_posts = df_posts[8].value_counts()
-    c.bar_chart(df_genre_posts,  y="count") 
-    c.bar_chart()
-    
+    df_posts = pd.DataFrame(posts)    
+    chart_data = pd.DataFrame(
+        {
+            "genres": ["Hommes", "Femmes"],
+            "nombre de posts": [
+                df_posts[df_posts[8] == "h"][8].count(),
+                df_posts[df_posts[8] == "f"][8].count(),
+            ],
+            "col3": ["#FFC0CB", "#AAC7E6"],
+        }
+    )
+
+    c.bar_chart(chart_data, x="genres", y="nombre de posts", color="col3")
 
     # --------------------------------------------
 
