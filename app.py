@@ -66,7 +66,7 @@ def main():
                 df_posts[df_posts[8] == "h"][8].count(),
                 df_posts[df_posts[8] == "f"][8].count(),
             ],
-            "col3": ["#FFC0CB", "#AAC7E6"],
+            "col3": ["#AAC7E6", "#FFC0CB"],
         }
     )
 
@@ -114,6 +114,45 @@ def main():
         color_discrete_sequence=["#FFC0CB", "#AAC7E6"],
         title=f"Top {NB_TOP} des contributeurs",
         )
+    c.plotly_chart(fig)
+
+    # --------------------------------------------
+
+    # Contributions par canaux
+    query = """
+    SELECT channels.name, COUNT(posts.id) AS nb_posts
+    FROM posts
+    LEFT JOIN channels ON posts.channel_id = channels.id
+    WHERE channel_id IN (SELECT id FROM channels WHERE name IN (%s))
+    AND posts.create_at >= %s AND posts.create_at < %s
+    GROUP BY posts.channel_id
+    ORDER BY nb_posts ASC
+    """ % (
+        ",".join(['"' + channel + '"' for channel in channels]),
+        datetime.datetime(year[0], 1, 1).timestamp(),
+        datetime.datetime(year[1], 12, 31).timestamp(),
+    )
+    results = requete(conn, query)
+    contributions = results
+
+    # Données d'exemple
+    data = pd.DataFrame(
+        {
+            "Canaux": [channel[0] for channel in contributions],
+            "Nb posts": [channel[1] for channel in contributions],
+        }
+    )
+
+    # Créer le graphique à barres horizontales avec etiquettes
+    fig = px.bar(
+        data,
+        x="Nb posts",
+        y="Canaux",
+        orientation="h",
+        text="Nb posts",
+        title=f"Top des canaux",
+        )
+    fig.update_traces(textfont_size=20, textfont_weight="bold")
     c.plotly_chart(fig)
 
     # Fermeture de la connexion à la base de données
